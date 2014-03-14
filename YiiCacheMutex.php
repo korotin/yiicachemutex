@@ -20,14 +20,14 @@ class YiiCacheMutex extends CApplicationComponent {
     public $cacheName   = 'cache';
 
     /**
-     * Sleep interval in milliseconds between cache pollings.
+     * Sleep interval in microseconds between cache pollings.
      * 
      * @var integer
      */
-    public $sleepTime   = 50;
+    public $sleepTime   = 100;
 
     /**
-     * Time for mutex to expire. 
+     * Interval in seconds for mutex to expire. 
      * If set to 0 mutex will never expire but this is not recommended.
      * 
      * @var integer
@@ -86,18 +86,21 @@ class YiiCacheMutex extends CApplicationComponent {
      * 
      * @param  string  $name
      * @param  boolean $blocking if false, false will be returned immediately if mutex if owned by another thread
-     * @param  int  $timeout     if not null, maximum time in milliseconds to wait for acquiring
+     * @param  int  $timeout     if not null, maximum time in microseconds to wait for acquiring
      * @return bool
      */
     public function acquire($name, $blocking = true, $timeout = null)
     {
         if (isset($this->acqiured[$name])) return true;
 
-        if ($timeout !== null) {
-            $endTime = microtime(true) + $timeout;
+        if ($timeout !== null && $timeout > 0) {
+            $endTime = microtime(true) + $timeout / 1000000;
+        }
+        else {
+            $timeout = null;
         }
 
-        $lockName = $this->getLockName();
+        $lockName = $this->getLockName($name);
         $info = $this->getLockInfo();
 
         while ($timeout === null || microtime(true) < $endTime) {
