@@ -1,0 +1,17 @@
+{
+    "name": "herroffizier/yiicachemutex",
+    "type": "library",
+    "description": "",
+    "keywords": ["yii", "mutex", "cache"],
+    "homepage": "https://github.com/herroffizier/yiicachemutex",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Martin Stolz",
+            "email": "herr.offizier@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.0"
+    }
+}

@@ -1,4 +1,4 @@
-yiicachemutex
-=============
+YiiCacheMutex
+===============
 
-Mutex implementation based on Yii cache.
+**YiiCacheMutex** is a mutex implementation for Yii framework based on Yii cache component.
