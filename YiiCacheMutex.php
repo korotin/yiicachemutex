@@ -1,12 +1,51 @@
 <?php
+/**
+ * YiiCacheMutex
+ *
+ * Mutex implementation based on Yii cache component.
+ * 
+ * @author  Martin Stolz <herr.offizier@gmail.com>
+ * @package ext.yiicachemutex
+ */
 
 class YiiCacheMutex extends CApplicationComponent {
 
+    /**
+     * Cache component name.
+     * Default value is 'cache', but you can use component with different name
+     * if you want to create separate cache for mutexes.
+     * 
+     * @var string
+     */
     public $cacheName   = 'cache';
+
+    /**
+     * Sleep interval in milliseconds between cache pollings.
+     * 
+     * @var integer
+     */
     public $sleepTime   = 50;
+
+    /**
+     * Time for mutex to expire. 
+     * If set to 0 mutex will never expire but this is not recommended.
+     * 
+     * @var integer
+     */
     public $expireTime  = 300;
 
+    /**
+     * Cache object.
+     * 
+     * @var CCache
+     */
     protected $cache = null;
+
+    /**
+     * Mutexes acquired by current thread.
+     * 
+     * @var array
+     */
     protected $acqiured = array();
 
     public function init()
@@ -16,21 +55,40 @@ class YiiCacheMutex extends CApplicationComponent {
 
         $this->cache = Yii::app()->getComponent($this->cacheName);
         if (!($this->cache instanceof ICache))
-            throw new CException('Cache component must implements ICache interface');
+            throw new CException('Cache component must implement ICache interface');
 
         parent::init();
     }
 
+    /**
+     * Cache item key for given lock name.
+     * 
+     * @param  string $name
+     * @return string
+     */
     protected function getLockName($name)
     {
         return 'lock:'.$name;
     }
 
+    /**
+     * Lock info stored into cache.
+     * 
+     * @return mixed
+     */
     protected function getLockInfo()
     {
         return true;
     }
 
+    /**
+     * Acqiure mutex with given name.
+     * 
+     * @param  string  $name
+     * @param  boolean $blocking if false, false will be returned immediately if mutex if owned by another thread
+     * @param  int  $timeout     if not null, maximum time in milliseconds to wait for acquiring
+     * @return bool
+     */
     public function acquire($name, $blocking = true, $timeout = null)
     {
         if (isset($this->acqiured[$name])) return true;
@@ -56,6 +114,12 @@ class YiiCacheMutex extends CApplicationComponent {
         return false;
     }
 
+    /**
+     * Release acquired mutex.
+     * 
+     * @param  string $name
+     * @return bool
+     */
     public function release($name)
     {
         if (!isset($this->acqiured[$name])) return false;
