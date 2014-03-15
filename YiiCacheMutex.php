@@ -83,33 +83,35 @@ class YiiCacheMutex extends CApplicationComponent {
 
     /**
      * Acqiure mutex with given name.
+     * If $timeout is less than zero (which is default) method waits for 
+     * mutex release forever.
+     * If $timeout is greater than zero, method will wait given amount 
+     * of microseconds for mutex release.
+     * If $timeout is zero, method will return false immediatly if mutex
+     * is not free.
      * 
      * @param  string  $name
-     * @param  boolean $blocking if false, false will be returned immediately if mutex if owned by another thread
-     * @param  int  $timeout     if not null, maximum time in microseconds to wait for acquiring
+     * @param  int  $timeout
      * @return bool
      */
-    public function acquire($name, $blocking = true, $timeout = null)
+    public function acquire($name, $timeout = -1)
     {
         if (isset($this->acqiured[$name])) return true;
 
-        if ($timeout !== null && $timeout > 0) {
+        if ($timeout > 0) {
             $endTime = microtime(true) + $timeout / 1000000;
-        }
-        else {
-            $timeout = null;
         }
 
         $lockName = $this->getLockName($name);
         $info = $this->getLockInfo();
 
-        while ($timeout === null || microtime(true) < $endTime) {
+        while ($timeout <= 0 || microtime(true) < $endTime) {
             if ($this->cache->add($lockName, $info, $this->expireTime)) {
                 $this->acqiured[$name] = true;
                 return true;
             }
 
-            if (!$blocking) return false;
+            if ($timeout === 0) return false;
 
             usleep($this->sleepTime);
         }

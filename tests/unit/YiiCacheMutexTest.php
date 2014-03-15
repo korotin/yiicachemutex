@@ -13,11 +13,6 @@ class YiiCacheMutexTest extends CTestCase {
         return $cm;
     }
 
-    public function tearDown()
-    {
-        passthru('rm -rf '.escapeshellarg(Yii::app()->fileCache->cachePath).'/*');
-    }
-
     public function cacheNames()
     {
         return array(
@@ -25,6 +20,15 @@ class YiiCacheMutexTest extends CTestCase {
             array('memcachedCache'),
             array('fileCache'),
         );
+    }
+
+    public function tearDown()
+    {
+        $cacheNames = $this->cacheNames();
+        foreach ($cacheNames as $cacheName) {
+            $cacheName = $cacheName[0];
+            Yii::app()->$cacheName->flush();
+        }
     }
 
     /**
@@ -44,11 +48,11 @@ class YiiCacheMutexTest extends CTestCase {
         $this->assertTrue($cm1->acquire($mutexName), 'Failed to acquire self lock '.$mutexName);
 
         $startTime = microtime(true);
-        $this->assertFalse($cm2->acquire($mutexName, true, 500000), 'Acquired foreign lock '.$mutexName);
+        $this->assertFalse($cm2->acquire($mutexName, 500000), 'Acquired foreign lock '.$mutexName);
         $this->assertGreaterThanOrEqual(0.5, microtime(true) - $startTime, 'Acquiring foreign lock '.$mutexName.' didnt block thread for 0.5s');
         
         $this->assertTrue($cm1->release($mutexName), 'Failed to release own lock '.$mutexName);
-        $this->assertTrue($cm2->acquire($mutexName, true, 500000), 'Failed to acquire released lock '.$mutexName);
+        $this->assertTrue($cm2->acquire($mutexName, 500000), 'Failed to acquire released lock '.$mutexName);
         $this->assertTrue($cm2->release($mutexName), 'Failed to release own lock '.$mutexName);
     }
 
@@ -68,10 +72,10 @@ class YiiCacheMutexTest extends CTestCase {
         $this->assertTrue($cm1->acquire($mutexName), 'Failed to acquire lock '.$mutexName);
         $this->assertTrue($cm1->acquire($mutexName), 'Failed to acquire self lock '.$mutexName);
 
-        $this->assertFalse($cm2->acquire($mutexName, false), 'Acquired foreign lock '.$mutexName);
+        $this->assertFalse($cm2->acquire($mutexName, 0), 'Acquired foreign lock '.$mutexName);
         
         $this->assertTrue($cm1->release($mutexName), 'Failed to release own lock '.$mutexName);
-        $this->assertTrue($cm2->acquire($mutexName, false), 'Failed to acquire released lock '.$mutexName);
+        $this->assertTrue($cm2->acquire($mutexName, 0), 'Failed to acquire released lock '.$mutexName);
         $this->assertTrue($cm2->release($mutexName), 'Failed to release own lock '.$mutexName);
     }
 
