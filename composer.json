@@ -1,7 +1,7 @@
 {
     "name": "herroffizier/yiicachemutex",
     "type": "library",
-    "description": "",
+    "description": "Mutex implementation based on Yii cache component",
     "keywords": ["yii", "mutex", "cache"],
     "homepage": "https://github.com/herroffizier/yiicachemutex",
     "license": "MIT",
